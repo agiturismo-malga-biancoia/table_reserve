@@ -37,37 +37,46 @@ export default function CalendarView({
   onDateClick 
 }: CalendarViewProps) {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
-  const [dayTotals, setDayTotals] = useState<DayTotal>({});
+  const [, setDayTotals] = useState<DayTotal>({});
   const [currentView, setCurrentView] = useState<ViewType>('dayGridMonth');
   const [currentDate, setCurrentDate] = useState(new Date());
   const calendarRef = useRef<FullCalendar>(null);
 
   useEffect(() => {
     // Convert reservations to calendar events
-    const calendarEvents = reservations.map((reservation) => {
-      // Combine date and time into a proper ISO string
-      const startDateTime = `${reservation.reservation_date}T${reservation.reservation_time}`;
-      const startDate = new Date(startDateTime);
-      
-      // Calculate end time (2 hours after start)
-      const endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000);
+    const calendarEvents = reservations
+      .filter((reservation) => {
+        // Filter out reservations with invalid dates
+        const dateOnly = reservation.reservation_date.split('T')[0]; // Extract YYYY-MM-DD
+        const startDateTime = `${dateOnly}T${reservation.reservation_time}`;
+        const startDate = new Date(startDateTime);
+        return !isNaN(startDate.getTime());
+      })
+      .map((reservation) => {
+        // Extract date part and combine with time
+        const dateOnly = reservation.reservation_date.split('T')[0]; // Extract YYYY-MM-DD
+        const startDateTime = `${dateOnly}T${reservation.reservation_time}`;
+        const startDate = new Date(startDateTime);
 
-      return {
-        id: reservation.id,
-        title: `${reservation.customer_name} (${reservation.party_size})`,
-        start: startDateTime,
-        end: endDate.toISOString(),
-        extendedProps: {
-          reservation,
-        },
-      };
-    });
+        // Calculate end time (2 hours after start)
+        const endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000);
+
+        return {
+          id: reservation.id,
+          title: `${reservation.customer_name} (${reservation.party_size})`,
+          start: startDateTime,
+          end: endDate.toISOString(),
+          extendedProps: {
+            reservation,
+          },
+        };
+      });
     
     // Calculate totals for each day
     const totals: DayTotal = {};
     reservations.forEach((reservation) => {
-      const date = reservation.reservation_date;
-      totals[date] = (totals[date] || 0) + reservation.party_size;
+      const dateOnly = reservation.reservation_date.split('T')[0]; // Extract YYYY-MM-DD
+      totals[dateOnly] = (totals[dateOnly] || 0) + reservation.party_size;
     });
 
     setDayTotals(totals);
@@ -87,10 +96,11 @@ export default function CalendarView({
     if (event) {
       event.stopPropagation();
     }
-    
-    const dayReservations = reservations.filter(
-      (r) => r.reservation_date === date
-    );
+
+    const dayReservations = reservations.filter((r) => {
+      const dateOnly = r.reservation_date.split('T')[0];
+      return dateOnly === date;
+    });
 
     if (dayReservations.length === 0) {
       return;
@@ -128,7 +138,6 @@ export default function CalendarView({
     headerCells.forEach(cell => {
       if (ws[cell]) {
         ws[cell].s = {
-          font: { bold: true },
           fill: { fgColor: { rgb: "4F46E5" } }, // Blue background
           font: { bold: true, color: { rgb: "FFFFFF" } }, // White text
           alignment: { horizontal: "center", vertical: "center" },
@@ -245,9 +254,12 @@ export default function CalendarView({
   // Get current day data for day view
   const getCurrentDayData = () => {
     if (currentView !== 'timeGridDay') return null;
-    
+
     const currentDateStr = format(currentDate, 'yyyy-MM-dd');
-    const dayReservations = reservations.filter(r => r.reservation_date === currentDateStr);
+    const dayReservations = reservations.filter(r => {
+      const dateOnly = r.reservation_date.split('T')[0];
+      return dateOnly === currentDateStr;
+    });
     const totalGuests = dayReservations.reduce((sum, r) => sum + r.party_size, 0);
     
     return {
