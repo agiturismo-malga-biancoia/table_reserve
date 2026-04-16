@@ -1,0 +1,147 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Enhanced calendar styling */
+.fc {
+  font-family: inherit;
+}
+
+.fc-theme-standard td,
+.fc-theme-standard th {
+  border-color: #e5e7eb;
+}
+
+.fc-daygrid-day {
+  position: relative;
+}
+
+.fc-daygrid-day-frame {
+  min-height: 100px;
+  position: relative;
+}
+
+.fc-daygrid-day-top {
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.fc-event {
+  border-radius: 6px;
+  border: none;
+  padding: 2px 6px;
+  margin: 1px 0;
+  font-size: 12px;
+  font-weight: 500;
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.fc-event:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.fc-event-title {
+  font-weight: 500;
+}
+
+.fc-daygrid-event {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fc-more-link {
+  color: #6b7280;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 4px;
+  border-radius: 4px;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+}
+
+.fc-more-link:hover {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+/* Day header styling */
+.fc-col-header-cell {
+  background: #f9fafb;
+  font-weight: 600;
+  color: #374151;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+/* Today highlighting */
+.fc-day-today {
+  background-color: #fef3c7 !important;
+}
+
+.fc-day-today .fc-daygrid-day-number {
+  background: #f59e0b;
+  color: white;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+/* Week and day view enhancements */
+.fc-timegrid-slot {
+  height: 3em;
+}
+
+.fc-timegrid-slot-label {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.fc-timegrid-event {
+  border-radius: 4px;
+  border: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .fc-daygrid-day-frame {
+    min-height: 80px;
+  }
+  
+  .fc-event {
+    font-size: 11px;
+    padding: 1px 4px;
+  }
+  
+  .guest-total-badge {
+    font-size: 10px;
+  }
+  
+  .download-button {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+@media (max-width: 640px) {
+  .fc-daygrid-day-frame {
+    min-height: 70px;
+  }
+  
+  .guest-total-badge div {
+    padding: 2px 4px;
+  }
+  
+  .download-button {
+    width: 20px;
+    height: 20px;
+  }
+}
