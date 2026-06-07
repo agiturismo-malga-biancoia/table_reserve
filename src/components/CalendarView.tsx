@@ -7,7 +7,7 @@ import { Reservation } from '../types/supabase';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { Download, ChevronLeft, ChevronRight, Calendar as CalendarIcon, Users } from 'lucide-react';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 
 interface CalendarViewProps {
   reservations: Reservation[];
@@ -92,7 +92,7 @@ export default function CalendarView({
     onDateClick(new Date(info.date));
   };
 
-  const exportDayToExcel = (date: string, event?: React.MouseEvent) => {
+  const exportDayToExcel = async (date: string, event?: React.MouseEvent) => {
     if (event) {
       event.stopPropagation();
     }
@@ -106,86 +106,73 @@ export default function CalendarView({
       return;
     }
 
-    // Prepare data for export with specific columns requested
-    const data = dayReservations.map((r) => ({
-      'Nome Cliente': r.customer_name,
-      'Numero Persone': r.party_size,
-      'Orario Prenotazione': r.reservation_time,
-      'Contatto': r.contact_info || '',
-      'Creato da': r.created_by,
-      'Note': r.notes || ''
-    }));
-
-    // Sort by reservation time for better organization
-    data.sort((a, b) => a['Orario Prenotazione'].localeCompare(b['Orario Prenotazione']));
-
-    // Create worksheet
-    const ws = XLSX.utils.json_to_sheet(data);
-    
-    // Set column widths for better readability - optimized for the main columns
-    const colWidths = [
-      { wch: 25 }, // Nome Cliente
-      { wch: 12 }, // Numero Persone
-      { wch: 15 }, // Orario Prenotazione
-      { wch: 20 }, // Contatto
-      { wch: 20 }, // Creato da
-      { wch: 30 }  // Note
-    ];
-    ws['!cols'] = colWidths;
-    
-    // Enhanced header styling with better colors and formatting
-    const headerCells = ['A1', 'B1', 'C1', 'D1', 'E1'];
-    headerCells.forEach(cell => {
-      if (ws[cell]) {
-        ws[cell].s = {
-          fill: { fgColor: { rgb: "4F46E5" } }, // Blue background
-          font: { bold: true, color: { rgb: "FFFFFF" } }, // White text
-          alignment: { horizontal: "center", vertical: "center" },
-          border: {
-            top: { style: "thin", color: { rgb: "000000" } },
-            bottom: { style: "thin", color: { rgb: "000000" } },
-            left: { style: "thin", color: { rgb: "000000" } },
-            right: { style: "thin", color: { rgb: "000000" } }
-          }
-        };
-      }
-    });
-
-    // Add alternating row colors for better readability
-    const range = XLSX.utils.decode_range(ws['!ref'] || 'A1');
-    for (let row = 2; row <= range.e.r + 1; row++) {
-      const isEvenRow = row % 2 === 0;
-      for (let col = range.s.c; col <= range.e.c; col++) {
-        const cellAddress = XLSX.utils.encode_cell({ r: row - 1, c: col });
-        if (ws[cellAddress]) {
-          ws[cellAddress].s = {
-            ...ws[cellAddress].s,
-            fill: { fgColor: { rgb: isEvenRow ? "F8FAFC" : "FFFFFF" } },
-            alignment: { horizontal: "left", vertical: "center" },
-            border: {
-              top: { style: "thin", color: { rgb: "E2E8F0" } },
-              bottom: { style: "thin", color: { rgb: "E2E8F0" } },
-              left: { style: "thin", color: { rgb: "E2E8F0" } },
-              right: { style: "thin", color: { rgb: "E2E8F0" } }
-            }
-          };
-        }
-      }
-    }
-
-    const wb = XLSX.utils.book_new();
-    
-    // Create a more descriptive sheet name with date and summary
     const totalGuests = dayReservations.reduce((sum, r) => sum + r.party_size, 0);
     const sheetName = `${format(new Date(date), 'dd-MM', { locale: it })} (${dayReservations.length}pren-${totalGuests}osp)`;
-    XLSX.utils.book_append_sheet(wb, ws, sheetName);
-
-    // Generate enhanced filename with more details
     const formattedDate = format(new Date(date), 'dd-MM-yyyy', { locale: it });
     const fileName = `Prenotazioni_${formattedDate}_${dayReservations.length}pren_${totalGuests}osp.xlsx`;
 
-    // Save file
-    XLSX.writeFile(wb, fileName);
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet(sheetName);
+
+    worksheet.columns = [
+      { header: 'Nome Cliente', key: 'nome', width: 25 },
+      { header: 'Numero Persone', key: 'persone', width: 12 },
+      { header: 'Orario Prenotazione', key: 'orario', width: 15 },
+      { header: 'Contatto', key: 'contatto', width: 20 },
+      { header: 'Creato da', key: 'creatoDa', width: 20 },
+      { header: 'Note', key: 'note', width: 30 },
+    ];
+
+    const sorted = [...dayReservations].sort((a, b) =>
+      a.reservation_time.localeCompare(b.reservation_time)
+    );
+
+    sorted.forEach((r) => {
+      worksheet.addRow({
+        nome: r.customer_name,
+        persone: r.party_size,
+        orario: r.reservation_time,
+        contatto: r.contact_info || '',
+        creatoDa: r.created_by,
+        note: r.notes || '',
+      });
+    });
+
+    worksheet.getRow(1).eachCell((cell) => {
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4F46E5' } };
+      cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+      cell.alignment = { horizontal: 'center', vertical: 'middle' };
+      cell.border = {
+        top: { style: 'thin', color: { argb: 'FF000000' } },
+        bottom: { style: 'thin', color: { argb: 'FF000000' } },
+        left: { style: 'thin', color: { argb: 'FF000000' } },
+        right: { style: 'thin', color: { argb: 'FF000000' } },
+      };
+    });
+
+    worksheet.eachRow((row, rowNumber) => {
+      if (rowNumber === 1) return;
+      const isEven = rowNumber % 2 === 0;
+      row.eachCell({ includeEmpty: true }, (cell) => {
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: isEven ? 'FFF8FAFC' : 'FFFFFFFF' } };
+        cell.alignment = { horizontal: 'left', vertical: 'middle' };
+        cell.border = {
+          top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+          bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+          left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+          right: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+        };
+      });
+    });
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const renderDayCellContent = (arg: any) => {
