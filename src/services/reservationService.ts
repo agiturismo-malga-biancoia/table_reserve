@@ -39,7 +39,7 @@ export const updateReservation = async (id: string, updates: Partial<Omit<Reserv
     .from('reservations')
     .update({
       ...updates,
-      restaurant_id: RESTAURANT_ID
+      restaurant_id: RESTAURANT_ID,
     })
     .eq('id', id)
     .select();

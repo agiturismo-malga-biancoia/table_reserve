@@ -19,7 +19,14 @@ export type Database = {
         Row: Reservation;
         Insert: Omit<Reservation, 'id' | 'created_at'>;
         Update: Partial<Omit<Reservation, 'id' | 'created_at'>>;
+        Relationships: [];
       };
+    };
+    Views: {
+      [_ in never]: never;
+    };
+    Functions: {
+      [_ in never]: never;
     };
   };
 };

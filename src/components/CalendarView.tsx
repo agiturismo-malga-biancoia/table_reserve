@@ -38,7 +38,7 @@ export default function CalendarView({
 }: CalendarViewProps) {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [, setDayTotals] = useState<DayTotal>({});
-  const [currentView, setCurrentView] = useState<ViewType>('dayGridMonth');
+  const [currentView, setCurrentView] = useState<ViewType>('timeGridDay');
   const [currentDate, setCurrentDate] = useState(new Date());
   const calendarRef = useRef<FullCalendar>(null);
 
