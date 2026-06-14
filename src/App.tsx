@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Toaster, toast } from 'react-hot-toast';
 import CalendarView from './components/CalendarView';
 import ReservationForm from './components/ReservationForm';
@@ -34,7 +34,7 @@ function App() {
       setIsCreateModalOpen(false);
       toast.success('Prenotazione creata con successo!');
     } catch (error) {
-      toast.error('Errore nella creazione della prenotazione');
+      toast.error('Errore nella creazione della prenotazione' + (error instanceof Error ? `: ${error.message}` : ''));
     }
   };
 
@@ -50,7 +50,7 @@ function App() {
       setSelectedReservation(null);
       toast.success('Prenotazione aggiornata con successo!');
     } catch (error) {
-      toast.error('Errore nell\'aggiornamento della prenotazione');
+      toast.error('Errore nell\'aggiornamento della prenotazione' + (error instanceof Error ? `: ${error.message}` : ''));
     }
   };
 
@@ -63,7 +63,7 @@ function App() {
       setSelectedReservation(null);
       toast.success('Prenotazione eliminata con successo!');
     } catch (error) {
-      toast.error('Errore nell\'eliminazione della prenotazione');
+      toast.error('Errore nell\'eliminazione della prenotazione' + (error instanceof Error ? `: ${error.message}` : ''));
     }
   };
 

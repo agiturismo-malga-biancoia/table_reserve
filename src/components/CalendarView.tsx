@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
-import interactionPlugin from '@fullcalendar/interaction';
+import interactionPlugin, { DateClickArg } from '@fullcalendar/interaction';
+import { EventClickArg, DayCellContentArg } from '@fullcalendar/core';
 import { Reservation } from '../types/supabase';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
@@ -83,12 +84,12 @@ export default function CalendarView({
     setEvents(calendarEvents);
   }, [reservations]);
 
-  const handleEventClick = (info: any) => {
-    const reservation = info.event.extendedProps.reservation;
+  const handleEventClick = (info: EventClickArg) => {
+    const reservation = info.event.extendedProps.reservation as Reservation;
     onReservationClick(reservation);
   };
 
-  const handleDateClick = (info: any) => {
+  const handleDateClick = (info: DateClickArg) => {
     onDateClick(new Date(info.date));
   };
 
@@ -175,7 +176,7 @@ export default function CalendarView({
     URL.revokeObjectURL(url);
   };
 
-  const renderDayCellContent = (arg: any) => {
+  const renderDayCellContent = (arg: DayCellContentArg) => {
     // For all views, just show the day number without totals or download buttons
     // The totals and download will only appear above the calendar in day view
     return (

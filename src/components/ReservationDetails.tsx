@@ -19,7 +19,7 @@ export default function ReservationDetails({
     try {
       return format(new Date(`${date}T${time}`), 'd MMMM yyyy - HH:mm', { locale: it });
     } catch (error) {
-      return 'Data non valida';
+      return 'Data non valida' + (error instanceof Error ? `: ${error.message}` : '');
     }
   };
 
