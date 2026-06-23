@@ -17,9 +17,29 @@ export default function ReservationDetails({
   // Combine date and time strings into a valid datetime string
   const getFormattedDateTime = (date: string, time: string) => {
     try {
-      return format(new Date(`${date}T${time}`), 'd MMMM yyyy - HH:mm', { locale: it });
+      if (!date || !time) {
+        return 'Data non disponibile';
+      }
+
+      // Extract just the date part if it's an ISO datetime string
+      const datePart = date.split('T')[0];
+
+      // Ensure time is in HH:mm or HH:mm:ss format
+      const normalizedTime = time.length === 5 ? `${time}:00` : time;
+      const dateTimeString = `${datePart}T${normalizedTime}`;
+
+      const dateObj = new Date(dateTimeString);
+
+      // Check if date is valid
+      if (isNaN(dateObj.getTime())) {
+        console.error('Invalid date:', { date, time, datePart, dateTimeString });
+        return `${datePart} ${time}`;
+      }
+
+      return format(dateObj, 'dd/MM/yyyy HH:mm', { locale: it });
     } catch (error) {
-      return 'Data non valida' + (error instanceof Error ? `: ${error.message}` : '');
+      console.error('Error formatting date:', error, { date, time });
+      return `${date.split('T')[0]} ${time}`;
     }
   };
 
@@ -99,7 +119,7 @@ export default function ReservationDetails({
           <div className="border-t border-gray-200 pt-4 mt-6">
             <h3 className="text-sm font-medium text-gray-500">Creata il</h3>
             <p className="mt-1 text-sm text-gray-500">
-              {format(new Date(reservation.created_at), 'd MMMM yyyy - HH:mm', { locale: it })}
+              {format(new Date(reservation.created_at), 'dd/MM/yyyy HH:mm', { locale: it })}
             </p>
           </div>
 
